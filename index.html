@@ -131,11 +131,6 @@
             <h2>Hakkımda</h2>
             <p>Bandırma 17 Eylül Üniversitesi Yönetim Bilişim Sistemleri mezunuyum. Veri analitiği, makine öğrenimi, web ve mobil geliştirme, veri görselleştirme ile ilgileniyorum. Projelerimde Python, SQL, JavaScript ve Flutter kullanıyorum.</p>
 
-            <div style="display:flex;gap:12px;margin-top:12px;flex-wrap:wrap">
-              <div style="background:rgba(255,255,255,0.02);padding:10px;border-radius:10px">🎓 Eğitim: YBS</div>
-              <div style="background:rgba(255,255,255,0.02);padding:10px;border-radius:10px">📈 İlgi: Veri Analitiği</div>
-              <div style="background:rgba(255,255,255,0.02);padding:10px;border-radius:10px">⚙️ Araçlar: Python, SQL, Git</div>
-            </div>
           </section>
 
           <section id="skills" class="card" style="margin-bottom:12px">
@@ -256,11 +251,9 @@
         fullName: 'İbrahim Volkan Koç',
         location: 'Bandırma, Türkiye',
         education: 'Yönetim Bilişim Sistemleri (Bandırma 17 Eylül Üniversitesi)',
-        goal: 'Yüksek lisans — Veri Bilimi',
         email: 'volkankoc3535@outlook.com',
         github: 'https://github.com/Volkan35Koc',
         linkedin: 'https://www.linkedin.com/in/ibrahimvolkankoc35/',
-        languages: 'İngilizce (YDS hedefi 90)',
         skills: [
           'Python', 'SQL', 'JavaScript', 'Dart/Flutter', 'C#',
           'Pandas', 'Scikit-Learn', 'Machine Learning', 'Data Visualization', 'Git & GitHub'
@@ -269,7 +262,12 @@
           {title:'Kişisel Chatbot — V Bot', tech:'HTML, JavaScript, GPT API (embed)'},
           {title:'SMA Crossover Trading Bot', tech:'Python, Pandas, Backtesting'},
           {title:'Öğrenci Başarı Tahmini', tech:'Python, Scikit-Learn'},
-          {title:'Topluluk Mobil Uygulaması', tech:'Flutter, Firebase'}
+          {title:'Gourmet TV Mobil Uygulaması', tech:'Flutter, Firebase'},
+          {title:'Gourmet TV Mobil Uygulaması', tech:'Flutter, Firebase'},
+          {title:'Gourmet TV Mobil Uygulaması', tech:'Flutter, Firebase'},
+          {title:'Gourmet TV Mobil Uygulaması', tech:'Flutter, Firebase'},
+          {title:'Gourmet TV Mobil Uygulaması', tech:'Flutter, Firebase'},
+        
         ],
         certificates: ['Data Science Bootcamp (varsa güncelleyin)', 'Python & SQL sertifikaları (varsa güncelleyin)']
       };
@@ -334,10 +332,10 @@
         const t = text.toLowerCase();
 
         if(t.includes('kim') || t.includes('hakkımda') || t.includes('volkan') || t.includes('ibrahim')){
-          return `<strong>${VOLKAN.fullName}</strong> — ${VOLKAN.education}. ${VOLKAN.location} ikametli, veri analitiği ve yazılım projeleri üzerinde çalışıyor. Hedefi: ${VOLKAN.goal}.`;
+          return `<strong>${VOLKAN.fullName}</strong> — ${VOLKAN.education}. ${VOLKAN.location} ikametli, veri analitiği ve yazılım projeleri üzerinde çalışıyor.;
         }
         if(t.includes('eğitim') || t.includes('ybs')){
-          return `Eğitim: ${VOLKAN.education}. Hedef: ${VOLKAN.goal}.`;
+          return `Eğitim: ${VOLKAN.education}`;
         }
         if(t.includes('programlama') || t.includes('yetenek') || t.includes('skill')){
           return `Programlama dilleri ve yetkinlikler: ${VOLKAN.skills.join(', ')}.`;
@@ -416,3 +414,4 @@
   </script>
 </body>
 </html>
+
