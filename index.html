@@ -68,8 +68,8 @@
     .chat-header{padding:12px;background:linear-gradient(90deg,rgba(255,255,255,0.02),transparent);display:flex;align-items:center;gap:10px}
     .chat-body{padding:12px;flex:1;overflow:auto}
     .message{margin:8px 0;padding:10px;border-radius:10px;max-width:78%}
-    .msg-user{background:linear-gradient(180deg,#0b2a3a,#07222b);margin-left:auto}
-    .msg-bot{background:linear-gradient(180deg,#16202a,#0e1a23)}
+    .msg-user{background:linear-gradient(180deg,#0b2a3a,#07222b);margin-left:auto;color:#eaf3ff}
+    .msg-bot{background:linear-gradient(180deg,#16202a,#0e1a23);color:#eaf3ff}
     .chat-input{display:flex;padding:10px;border-top:1px solid rgba(255,255,255,0.02)}
     .chat-input input{flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#eaf3ff}
     .send{background:transparent;border:none;color:var(--accent);padding:6px 8px;cursor:pointer}
@@ -78,6 +78,7 @@
       .hero{grid-template-columns:1fr;}
       .sections{grid-template-columns:1fr}
       nav{display:none}
+      .chat-window{right:12px;left:12px;width:auto}
     }
   </style>
 </head>
@@ -203,9 +204,9 @@
             </form>
 
             <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-              <a href="#" style="text-decoration:none;color:var(--muted)">GitHub</a>
-              <a href="#" style="text-decoration:none;color:var(--muted)">LinkedIn</a>
-              <a href="mailto:volkan@example.com" style="text-decoration:none;color:var(--muted)">E-posta</a>
+              <a href="https://github.com/Volkan35Koc" target="_blank" style="text-decoration:none;color:var(--muted)">GitHub</a>
+              <a href="https://www.linkedin.com/in/ibrahimvolkankoc35/" target="_blank" style="text-decoration:none;color:var(--muted)">LinkedIn</a>
+              <a href="mailto:volkankoc3535@outlook.com" style="text-decoration:none;color:var(--muted)">E-posta</a>
             </div>
           </section>
 
@@ -223,169 +224,195 @@
 
   </div>
 
-  <!-- Chatbot widget (local, lightweight demo). Replace the sendMessage function to integrate with a real API (OpenAI / backend).
-       - This demo shows a floating chat that opens with an intro message and asks: "Volkan hakkında ne öğrenmek istersiniz?"
-       - To integrate with OpenAI: create a server endpoint that holds your API key, then call it from sendMessage() using fetch.
-  -->
-  <button class="chat-toggle" id="chatToggle">💬</button>
-  <div class="chat-window" id="chatWindow" style="display:none">
+  <!-- Chatbot widget -->
+  <button class="chat-toggle" id="chatToggle" aria-label="V Bot">💬</button>
+  <div class="chat-window" id="chatWindow" style="display:none" role="dialog" aria-label="V Bot Penceresi">
     <div class="chat-header">
       <div style="width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#f7c27a);display:flex;align-items:center;justify-content:center;color:#081017;font-weight:800">V</div>
-      <div style="font-weight:700">Volkan AI</div>
+      <div style="font-weight:700;margin-left:8px">V Bot</div>
     </div>
-    <div class="chat-body" id="chatBody">
-      <!-- messages -->
+    <div class="chat-body" id="chatBody" aria-live="polite">
+      <!-- messages injected here -->
     </div>
     <div class="chat-input">
-      <input id="chatInput" placeholder="Mesaj yaz... (ör: Portföyün hakkında)" />
-      <button class="send" onclick="onSend()">Gönder</button>
+      <input id="chatInput" placeholder="Mesaj yaz... (ör: Projeleri nelerdir?)" aria-label="Mesaj girin" />
+      <button class="send" id="chatSendBtn" title="Gönder">Gönder</button>
     </div>
   </div>
 
   <script>
-    // V Bot: Strict persona-based assistant — answers ONLY questions about Volkan
-    const chatToggle = document.getElementById('chatToggle');
-    const chatWindow = document.getElementById('chatWindow');
-    const chatBody = document.getElementById('chatBody');
-    const chatInput = document.getElementById('chatInput');
-
-    // Persona data (single source of truth)
-    const VOLKAN = {
-      name: 'Volkan',
-      fullName: 'İbrahim Volkan Koç',
-      location: 'Bandırma, Türkiye',
-      education: 'Yönetim Bilişim Sistemleri (Bandırma 17 Eylül Üniversitesi)',
-      goal: 'Yüksek lisans — Veri Bilimi',
-      email: 'volkankoc3535@outlook.com',
-      github: 'https://github.com/Volkan35Koc',
-      linkedin: 'https://www.linkedin.com/in/ibrahimvolkankoc35/',
-      languages: 'İngilizce (YDS hedefi 90)',
-      skills: [
-        'Python', 'SQL', 'JavaScript', 'Dart/Flutter', 'C#',
-        'Pandas', 'Scikit-Learn', 'Machine Learning', 'Data Visualization', 'Git & GitHub'
-      ],
-      projects: [
-        {title:'Kişisel Chatbot — V Bot', tech:'HTML, JavaScript, GPT API (embed)'},
-        {title:'SMA Crossover Trading Bot', tech:'Python, Pandas, Backtesting'},
-        {title:'Öğrenci Başarı Tahmini', tech:'Python, Scikit-Learn'},
-        {title:'Topluluk Mobil Uygulaması', tech:'Flutter, Firebase'}
-      ],
-      certificates: ['Data Science Bootcamp (varsa güncelleyin)', 'Python & SQL sertifikaları (varsa güncelleyin)']
-    };
-
-    // Allowed keywords (if user input contains any of these, V Bot will answer) — includes Turkish variations
-    const ALLOWED_KEYWORDS = [
-      'volkan','ibrahim','kim','hakkımda','eğitim','ybs','yüksek lisans','proje','projeler','sertifika','sertifikalar',
-      'yetenek','yetenekleri','programlama','dil','diller','yetkinlik','cv','özgeçmiş','iletişim','contact','github','linkedin','email','e-posta'
-    ];
-
-    function appendMessage(text, who='bot'){
-      const d = document.createElement('div');
-      d.className = 'message ' + (who==='bot' ? 'msg-bot' : 'msg-user');
-      d.textContent = text;
-      chatBody.appendChild(d);
-      chatBody.scrollTop = chatBody.scrollHeight;
-    }
-
-    function openChat(){
-      chatWindow.style.display = 'flex';
-      chatToggle.style.display = 'none';
-      if(!sessionStorage.getItem('volkan_chat_seen')){
-        appendMessage('Merhaba! Ben V Bot. Volkan hakkında bilgi almak için buradayım.
-Hakkında ne öğrenmek istersiniz? Örneğin: projeleri, yetenekleri, yabancı dilleri, eğitimi...');
-        sessionStorage.setItem('volkan_chat_seen','1');
-      }
-    }
-
-    chatToggle.addEventListener('click',openChat);
-
-    function closeChat(){
-      chatWindow.style.display = 'none';
-      chatToggle.style.display = 'block';
-    }
-
-    // Helper: check if input contains any allowed keyword
-    function containsAllowedKeyword(text){
-      const t = text.toLowerCase();
-      return ALLOWED_KEYWORDS.some(k => t.includes(k));
-    }
-
-    // Answer generator: returns appropriate answer for allowed queries
-    function generateAnswer(text){
-      const t = text.toLowerCase();
-      if(t.includes('kim') || t.includes('hakkımda') || t.includes('volkan') || t.includes('ibrahim')){
-        return `${VOLKAN.fullName} — ${VOLKAN.education}. ${VOLKAN.location} ikametli, veri analitiği ve yazılım projeleri üzerinde çalışıyor. Hedefi: ${VOLKAN.goal}.`;
-      }
-      if(t.includes('eğitim') || t.includes('ybs')){
-        return `Eğitim: ${VOLKAN.education}. Hedef: ${VOLKAN.goal}.`;
-      }
-      if(t.includes('programlama') || t.includes('dil') || t.includes('diller') || t.includes('yetenek')){
-        return `Programlama dilleri ve yetkinlikler: ${VOLKAN.skills.join(', ')}.`;
-      }
-      if(t.includes('proj') || t.includes('proje')){
-        return 'Projeler: ' + VOLKAN.projects.map(p=>`${p.title} (${p.tech})`).join(' • ');
-      }
-      if(t.includes('sertif') || t.includes('sertifika')){
-        return 'Sertifikalar: ' + VOLKAN.certificates.join(' • ') + ' (detaylar için güncelleme ekleyin).';
-      }
-      if(t.includes('yabancı') || t.includes('ingilizce') || t.includes('dil')){
-        return `Yabancı diller: ${VOLKAN.languages}.`;
-      }
-      if(t.includes('iletişim') || t.includes('github') || t.includes('linkedin') || t.includes('email') || t.includes('e-posta')){
-        return `İletişim: E-mail: ${VOLKAN.email} • GitHub: ${VOLKAN.github} • LinkedIn: ${VOLKAN.linkedin}`;
-      }
-      if(t.includes('cv') || t.includes('özgeçmiş')){
-        return `Kısa Özgeçmiş: ${VOLKAN.fullName}, ${VOLKAN.education}. Veri analitiği ve yazılım odaklı projeler geliştiriyor. Daha fazla detay için hangi kısmı görmek istersiniz?`;
-      }
-      // default allowed response
-      return 'Bu konuda daha spesifik bir soru sorabilir misiniz? Örn: "Volkanın projeleri nelerdir?" veya "Volkan hangi dillere hakim?"';
-    }
-
-    function onSend(){
-      const text = chatInput.value.trim();
-      if(!text) return;
-      appendMessage(text,'user');
-      chatInput.value = '';
-
-      // Determine whether to answer or refuse
-      const allowed = containsAllowedKeyword(text);
-
-      setTimeout(()=>{
-        if(allowed){
-          const answer = generateAnswer(text);
-          appendMessage(answer);
-        } else {
-          appendMessage('Üzgünüm, ben yalnızca Volkan hakkında bilgi vermek için tasarlandım. Volkan ile ilgili bir şey öğrenmek ister misiniz?');
-        }
-      }, 500);
-    }
-
-    chatInput.addEventListener('keydown', function(e){ if(e.key==='Enter') onSend(); });
-
-    // contact form handler (uses provided email)
-    function handleContact(e){
-      e.preventDefault();
-      const name = document.getElementById('name').value;
-      const email = document.getElementById('email').value;
-      const message = document.getElementById('message').value;
-      const body = encodeURIComponent('İsim: '+name+'
-E-posta: '+email+'
-
-'+message);
-      window.location.href = 'mailto:volkankoc3535@outlook.com?subject='+encodeURIComponent('Portföy İletişim Formu')+'&body='+body;
-    }
-
-    // set avatar initial
+    // ===== V Bot - Working integrated chatbot =====
     (function(){
-      const avatar = document.getElementById('avatar');
-      avatar.innerText = 'V';
-    })();
+      // Elements
+      const chatToggle = document.getElementById('chatToggle');
+      const chatWindow = document.getElementById('chatWindow');
+      const chatBody = document.getElementById('chatBody');
+      const chatInput = document.getElementById('chatInput');
+      const chatSendBtn = document.getElementById('chatSendBtn');
 
-    // Notes: To connect V Bot to a backend (OpenAI) while keeping the persona rules intact,
-    // create a server endpoint that accepts user messages, validates whether the question
-    // is Volkan-related (use the same allowed-keyword logic on the server), and only
-    // forwards permitted questions to OpenAI. Respond with the model output limited to
-    // Volkan persona and refuse otherwise.
+      // Persona / Data
+      const VOLKAN = {
+        name: 'Volkan',
+        fullName: 'İbrahim Volkan Koç',
+        location: 'Bandırma, Türkiye',
+        education: 'Yönetim Bilişim Sistemleri (Bandırma 17 Eylül Üniversitesi)',
+        goal: 'Yüksek lisans — Veri Bilimi',
+        email: 'volkankoc3535@outlook.com',
+        github: 'https://github.com/Volkan35Koc',
+        linkedin: 'https://www.linkedin.com/in/ibrahimvolkankoc35/',
+        languages: 'İngilizce (YDS hedefi 90)',
+        skills: [
+          'Python', 'SQL', 'JavaScript', 'Dart/Flutter', 'C#',
+          'Pandas', 'Scikit-Learn', 'Machine Learning', 'Data Visualization', 'Git & GitHub'
+        ],
+        projects: [
+          {title:'Kişisel Chatbot — V Bot', tech:'HTML, JavaScript, GPT API (embed)'},
+          {title:'SMA Crossover Trading Bot', tech:'Python, Pandas, Backtesting'},
+          {title:'Öğrenci Başarı Tahmini', tech:'Python, Scikit-Learn'},
+          {title:'Topluluk Mobil Uygulaması', tech:'Flutter, Firebase'}
+        ],
+        certificates: ['Data Science Bootcamp (varsa güncelleyin)', 'Python & SQL sertifikaları (varsa güncelleyin)']
+      };
+
+      // Allowed keywords (for stricter filtering)
+      const ALLOWED_KEYWORDS = [
+        'volkan','ibrahim','kim','hakkımda','eğitim','ybs','yüksek lisans','proje','projeler','sertifika','sertifikalar',
+        'yetenek','yetenekleri','programlama','dil','diller','yetkinlik','cv','özgeçmiş','iletişim','contact','github','linkedin','email','e-posta','mail'
+      ];
+
+      // Helper: append messages (bot uses innerHTML to allow light formatting)
+      function appendMessage(text, who='bot'){
+        const d = document.createElement('div');
+        d.className = 'message ' + (who==='bot' ? 'msg-bot' : 'msg-user');
+        if(who === 'bot'){
+          d.innerHTML = text;
+        } else {
+          // escape simple dangerous characters for user messages
+          d.textContent = text;
+        }
+        chatBody.appendChild(d);
+        chatBody.scrollTop = chatBody.scrollHeight;
+      }
+
+      // Intro / open chat
+      function openChat(){
+        chatWindow.style.display = 'flex';
+        chatToggle.style.display = 'none';
+        if(!sessionStorage.getItem('volkan_chat_seen')){
+          const intro = `<strong>Merhaba! Ben V Bot.</strong><br>
+          Volkan hakkında bilgi almak için buradayım.<br><br>
+          Örnek sorular: <em>Projeleri nelerdir?, Hangi programlama dillerini biliyor?, Eğitim bilgisi?</em>`;
+          appendMessage(intro,'bot');
+          sessionStorage.setItem('volkan_chat_seen','1');
+        }
+        chatInput.focus();
+      }
+
+      function closeChat(){
+        chatWindow.style.display = 'none';
+        chatToggle.style.display = 'block';
+      }
+
+      // Toggle handler
+      chatToggle.addEventListener('click', openChat);
+
+      // Press Esc to close
+      document.addEventListener('keydown', (e) => {
+        if(e.key === 'Escape' && chatWindow.style.display === 'flex'){
+          closeChat();
+        }
+      });
+
+      // Utility: check allowed keywords presence
+      function containsAllowedKeyword(text){
+        const t = text.toLowerCase();
+        return ALLOWED_KEYWORDS.some(k => t.includes(k));
+      }
+
+      // Generate answer for allowed queries
+      function generateAnswer(text){
+        const t = text.toLowerCase();
+
+        if(t.includes('kim') || t.includes('hakkımda') || t.includes('volkan') || t.includes('ibrahim')){
+          return `<strong>${VOLKAN.fullName}</strong> — ${VOLKAN.education}. ${VOLKAN.location} ikametli, veri analitiği ve yazılım projeleri üzerinde çalışıyor. Hedefi: ${VOLKAN.goal}.`;
+        }
+        if(t.includes('eğitim') || t.includes('ybs')){
+          return `Eğitim: ${VOLKAN.education}. Hedef: ${VOLKAN.goal}.`;
+        }
+        if(t.includes('programlama') || t.includes('yetenek') || t.includes('skill')){
+          return `Programlama dilleri ve yetkinlikler: ${VOLKAN.skills.join(', ')}.`;
+        }
+        if(t.includes('proj') || t.includes('proje')){
+          return 'Projeler: ' + VOLKAN.projects.map(p=>`${p.title} (${p.tech})`).join(' • ');
+        }
+        if(t.includes('sertif') || t.includes('sertifika')){
+          return 'Sertifikalar: ' + VOLKAN.certificates.join(' • ') + ' (detaylar için güncelleme ekleyin).';
+        }
+        if(t.includes('yabancı') || t.includes('ingilizce') || t.includes('dil')){
+          return `Yabancı diller: ${VOLKAN.languages}.`;
+        }
+        if(t.includes('iletişim') || t.includes('github') || t.includes('linkedin') || t.includes('email') || t.includes('e-posta') || t.includes('mail')){
+          return `İletişim: E-mail: ${VOLKAN.email} • GitHub: ${VOLKAN.github} • LinkedIn: ${VOLKAN.linkedin}`;
+        }
+        if(t.includes('cv') || t.includes('özgeçmiş')){
+          return `Kısa Özgeçmiş: ${VOLKAN.fullName}, ${VOLKAN.education}. Veri analitiği ve yazılım odaklı projeler geliştiriyor. Daha fazla detay için hangi kısmı görmek istersiniz?`;
+        }
+        // default allowed response
+        return 'Bu konuda daha spesifik bir soru sorabilir misiniz? Örn: "Volkanın projeleri nelerdir?" veya "Volkan hangi dillere hakim?"';
+      }
+
+      // Main send handler
+      function onSend(){
+        const text = chatInput.value.trim();
+        if(!text) return;
+        appendMessage(text,'user');
+        chatInput.value = '';
+        chatInput.focus();
+
+        // Decide whether input is allowed (about Volkan)
+        const allowed = containsAllowedKeyword(text);
+
+        setTimeout(() => {
+          if(allowed){
+            const answer = generateAnswer(text);
+            appendMessage(answer,'bot');
+          } else {
+            appendMessage('Üzgünüm, ben yalnızca Volkan hakkında bilgi vermek için tasarlandım. Volkan ile ilgili bir şey öğrenmek ister misiniz?','bot');
+          }
+        }, 400);
+      }
+
+      // Enter key to send
+      chatInput.addEventListener('keydown', function(e){
+        if(e.key === 'Enter'){ e.preventDefault(); onSend(); }
+      });
+
+      chatSendBtn.addEventListener('click', onSend);
+
+      // Contact form handler (mailto)
+      window.handleContact = function(e){
+        e.preventDefault();
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const message = document.getElementById('message').value.trim();
+        const body = encodeURIComponent('İsim: ' + name + '\nE-posta: ' + email + '\n\n' + message);
+        window.location.href = 'mailto:volkankoc3535@outlook.com?subject=' + encodeURIComponent('Portföy İletişim Formu') + '&body=' + body;
+      };
+
+      // Set avatar initial if no image
+      (function(){
+        const avatar = document.getElementById('avatar');
+        if(avatar) avatar.innerText = 'V';
+      })();
+
+      // Accessibility: focus input when chat opened via keyboard
+      chatToggle.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' || e.key === ' '){
+          openChat();
+        }
+      });
+
+    })();
   </script>
 </body>
 </html>
